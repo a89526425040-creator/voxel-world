@@ -94,6 +94,12 @@ jobs:
           echo "=== Debug keystore ==="
           test -s "$HOME/.android/debug.keystore"
           keytool -list -keystore "$HOME/.android/debug.keystore" -storepass android
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$HOME/.android/debug.keystore"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
+
+          echo "=== Godot editor settings ==="
+          cat "$HOME/.config/godot/editor_settings-4.tres"
 
           echo "=== Godot project import ==="
           godot --headless --path . --editor --quit --verbose
