@@ -67,9 +67,38 @@ jobs:
       - name: Validate and export Android APK
         shell: bash
         run: |
+          set -euxo pipefail
           mkdir -p build
           export PATH="$ANDROID_HOME/cmdline-tools/cmdline-tools/bin:$ANDROID_HOME/platform-tools:$PATH"
-          godot --headless --path . --editor --quit
+          JAVA_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v javac)")")")"
+          export JAVA_HOME
+
+          echo "=== Godot Android export templates ==="
+          ls -lah "$HOME/.local/share/godot/export_templates/4.3.stable/"
+          test -s "$HOME/.local/share/godot/export_templates/4.3.stable/android_debug.apk"
+          test -s "$HOME/.local/share/godot/export_templates/4.3.stable/android_release.apk"
+
+          echo "=== Android SDK tools ==="
+          test -x "$ANDROID_HOME/platform-tools/adb"
+          test -d "$ANDROID_HOME/platforms/android-34"
+          test -x "$ANDROID_HOME/build-tools/34.0.0/aapt"
+          test -x "$ANDROID_HOME/build-tools/34.0.0/apksigner"
+          adb version
+          "$ANDROID_HOME/build-tools/34.0.0/aapt" version
+
+          echo "=== Java tools ==="
+          test -x "$JAVA_HOME/bin/java"
+          test -x "$JAVA_HOME/bin/keytool"
+          java -version
+
+          echo "=== Debug keystore ==="
+          test -s "$HOME/.android/debug.keystore"
+          keytool -list -keystore "$HOME/.android/debug.keystore" -storepass android
+
+          echo "=== Godot project import ==="
+          godot --headless --path . --editor --quit --verbose
+
+          echo "=== Android APK export ==="
           godot --headless --path . --export-debug "Android" build/VoxelWorld.apk --verbose
           test -s build/VoxelWorld.apk
 
