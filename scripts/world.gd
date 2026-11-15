@@ -184,7 +184,7 @@ func _rebuild_chunk(key: Vector2i) -> void:
 	mesh_instance.mesh = surface.commit()
 	mesh_instance.material_override = block_material
 
-	var old_body := chunk_nodes[key].get_node_or_null("Collision")
+	var old_body: Node = chunk_nodes[key].get_node_or_null("Collision")
 	if old_body:
 		chunk_nodes[key].remove_child(old_body)
 		old_body.free()
