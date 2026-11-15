@@ -237,7 +237,7 @@ func _load_world_edits() -> void:
 	if file == null:
 		return
 	var parsed = JSON.parse_string(file.get_as_text())
-	if not parsed is Dictionary:
+	if typeof(parsed) != TYPE_DICTIONARY:
 		return
 	# This is a full voxel snapshot. Replace generated chunks with the saved snapshot.
 	for chunk_key in chunks.keys():
