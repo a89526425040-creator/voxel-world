@@ -28,6 +28,9 @@ func _ready() -> void:
 	noise.noise_type = FastNoiseLite.TYPE_SIMPLEX
 	noise.frequency = 0.018
 	block_material.vertex_color_use_as_albedo = true
+	# Keep voxel faces visible from either side; this also protects the mesh
+	# against winding differences between generated triangle faces.
+	block_material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	block_material.roughness = 1.0
 
 	# Generate data first, so chunk borders can hide shared faces correctly.
