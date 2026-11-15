@@ -70,7 +70,7 @@ jobs:
           mkdir -p build
           export PATH="$ANDROID_HOME/cmdline-tools/cmdline-tools/bin:$ANDROID_HOME/platform-tools:$PATH"
           godot --headless --path . --editor --quit
-          godot --headless --path . --export-debug "Android" build/VoxelWorld.apk
+          godot --headless --path . --export-debug "Android" build/VoxelWorld.apk --verbose
           test -s build/VoxelWorld.apk
 
       - name: Upload Android APK
