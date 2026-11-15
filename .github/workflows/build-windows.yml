@@ -1,0 +1,35 @@
+name: Build Windows Prototype
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    name: Export Windows x86_64
+    runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate and export project
+        shell: bash
+        run: |
+          mkdir -p build
+          godot --headless --path . --editor --quit
+          godot --headless --path . --export-release "Windows Desktop" build/VoxelWorld.exe
+          test -s build/VoxelWorld.exe
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: Voxel-World-Windows
+          path: build/VoxelWorld.exe
+          if-no-files-found: error
+          retention-days: 30
