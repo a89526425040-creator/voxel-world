@@ -12,6 +12,7 @@ A standalone editable voxel sandbox built with **Godot 4** and GDScript.
 - Remove blocks with the left mouse button.
 - Place blocks with the right mouse button.
 - Select grass, dirt, stone, sand and wood with keys 1–5.
+- Automatically save the edited voxel world to `user://world_save.json` after each block edit.
 - Rebuild only the edited chunk and adjacent chunks when an edit crosses a border.
 
 ## Run
