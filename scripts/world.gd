@@ -18,6 +18,7 @@ var noise := FastNoiseLite.new()
 var chunks: Dictionary = {}
 var chunk_nodes: Dictionary = {}
 var block_material := StandardMaterial3D.new()
+const SAVE_PATH := "user://world_save.json"
 
 
 func _ready() -> void:
@@ -40,6 +41,7 @@ func _ready() -> void:
 			add_child(chunk_node)
 			chunk_nodes[key] = chunk_node
 
+	_load_world_edits()
 	for key in chunks.keys():
 		_rebuild_chunk(key)
 
@@ -122,6 +124,7 @@ func set_block(world_pos: Vector3i, block_id: int) -> bool:
 		chunks[key].erase(local)
 	else:
 		chunks[key][local] = block_id
+	_save_world_edits()
 
 	_rebuild_chunk(key)
 	# Rebuild adjacent chunks when an edited block lies on a chunk border.
@@ -183,7 +186,8 @@ func _rebuild_chunk(key: Vector2i) -> void:
 
 	var old_body := chunk_nodes[key].get_node_or_null("Collision")
 	if old_body:
-		old_body.queue_free()
+		chunk_nodes[key].remove_child(old_body)
+		old_body.free()
 
 	if mesh_instance.mesh != null and mesh_instance.mesh.get_surface_count() > 0:
 		var body := StaticBody3D.new()
@@ -208,3 +212,44 @@ func _block_color(block_id: int, normal: Vector3i) -> Color:
 			return Color(0.38, 0.23, 0.12)
 		_:
 			return Color.WHITE
+
+
+
+func _save_world_edits() -> void:
+	var edits: Dictionary = {}
+	for key in chunks.keys():
+		var chunk_data: Dictionary = chunks[key]
+		for local_value in chunk_data.keys():
+			var local: Vector3i = local_value
+			# Only persist differences from generated terrain in a future save format.
+			# This first version stores the edited voxel set for a reliable prototype save.
+			var world_pos := Vector3i(key.x * CHUNK_SIZE + local.x, local.y, key.y * CHUNK_SIZE + local.z)
+			edits["%d,%d,%d" % [world_pos.x, world_pos.y, world_pos.z]] = int(chunk_data[local])
+	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(edits))
+
+
+func _load_world_edits() -> void:
+	if not FileAccess.file_exists(SAVE_PATH):
+		return
+	var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if file == null:
+		return
+	var parsed = JSON.parse_string(file.get_as_text())
+	if not parsed is Dictionary:
+		return
+	# This is a full voxel snapshot. Replace generated chunks with the saved snapshot.
+	for chunk_key in chunks.keys():
+		chunks[chunk_key].clear()
+	for position_key in parsed.keys():
+		var parts := String(position_key).split(",")
+		if parts.size() != 3:
+			continue
+		var world_pos := Vector3i(int(parts[0]), int(parts[1]), int(parts[2]))
+		var key := _chunk_key(world_pos)
+		if not chunks.has(key):
+			continue
+		var block_id := int(parsed[position_key])
+		if block_id > 0:
+			chunks[key][_local_pos(world_pos, key)] = block_id
