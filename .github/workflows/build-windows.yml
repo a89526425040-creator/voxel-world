@@ -20,6 +20,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install download tools
+        shell: bash
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends curl unzip
+
       - name: Install Godot export templates
         shell: bash
         run: |
